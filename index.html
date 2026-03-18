@@ -1,837 +1,815 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.7">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; -webkit-text-stroke: #000000}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; -webkit-text-stroke: #000000; min-height: 14.0px}
-    span.s1 {font-kerning: none}
-    span.s2 {font: 12.0px 'Apple Color Emoji'; font-kerning: none}
-    span.s3 {font: 12.0px 'Zapf Dingbats'; font-kerning: none}
-    span.s4 {font: 12.0px 'Lucida Grande'; font-kerning: none}
-    span.s5 {font: 13.0px 'Helvetica Neue'; font-kerning: none; color: #1f1e1d; background-color: #dad7d5; -webkit-text-stroke: 0px #1f1e1d}
-    span.s6 {font: 12.0px 'Hiragino Sans'; font-kerning: none}
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Restaurant Expense Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-authentication-library-browser/3.11.0/msal-browser.min.js"></script>
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:       #0A0A0F;
+  --surface:  #13131A;
+  --card:     #1C1C26;
+  --border:   rgba(255,255,255,0.08);
+  --border2:  rgba(255,255,255,0.14);
+  --text:     #F0EFF8;
+  --muted:    rgba(240,239,248,0.45);
+  --hint:     rgba(240,239,248,0.28);
+  --accent:   #7C6AF7;
+  --accent2:  #5B4FD4;
+  --gold:     #F5C842;
+  --success:  #34D399;
+  --danger:   #F87171;
+  --r:        16px;
+}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
+
+/* ── NOISE TEXTURE OVERLAY ────────────────────────────────────────────────── */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:.4;
+}
+
+/* ── ACCENT GLOW ──────────────────────────────────────────────────────────── */
+body::after{
+  content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);
+  width:600px;height:400px;
+  background:radial-gradient(ellipse,rgba(124,106,247,0.15) 0%,transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+/* ── LAYOUT ───────────────────────────────────────────────────────────────── */
+.wrap{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:0 16px 60px;}
+
+/* ── HEADER ───────────────────────────────────────────────────────────────── */
+.header{
+  padding:36px 0 28px;
+  text-align:center;
+}
+.header-eyebrow{
+  font-family:'Syne',sans-serif;
+  font-size:10px;letter-spacing:3px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:12px;
+}
+.header h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(22px,5vw,28px);font-weight:800;
+  color:var(--text);line-height:1.15;margin-bottom:6px;
+}
+.header p{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* ── SIGN-IN WALL ─────────────────────────────────────────────────────────── */
+#signInWall{
+  background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:var(--r);
+  padding:32px 24px;
+  text-align:center;
+  margin-top:8px;
+}
+#signInWall h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;}
+#signInWall p{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6;}
+.ms-btn{
+  display:inline-flex;align-items:center;gap:10px;
+  background:#fff;color:#1a1a1a;
+  border:none;border-radius:8px;
+  padding:12px 22px;font-size:14px;font-weight:500;
+  cursor:pointer;transition:opacity .15s;
+  font-family:'DM Sans',sans-serif;
+}
+.ms-btn:hover{opacity:.92;}
+.ms-logo{width:18px;height:18px;flex-shrink:0;}
+
+/* ── USER BAR ─────────────────────────────────────────────────────────────── */
+#userBar{
+  display:none;
+  align-items:center;justify-content:space-between;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  margin-bottom:16px;
+  font-size:12px;
+}
+#userBar.show{display:flex;}
+.user-info{display:flex;align-items:center;gap:8px;}
+.user-avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--accent2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;
+  font-family:'Syne',sans-serif;
+  flex-shrink:0;
+}
+.user-name{color:var(--text);font-weight:500;}
+.sign-out-btn{
+  font-size:11px;color:var(--muted);
+  background:none;border:none;cursor:pointer;
+  text-decoration:underline;text-underline-offset:2px;
+}
+
+/* ── CARDS ────────────────────────────────────────────────────────────────── */
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  margin-bottom:12px;
+  overflow:hidden;
+}
+.card-head{
+  padding:14px 18px 12px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.card-head-label{
+  font-family:'Syne',sans-serif;
+  font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--accent);
+}
+.card-head-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;
+}
+.card-body{padding:16px 18px;}
+
+/* ── FIELDS ───────────────────────────────────────────────────────────────── */
+.field{margin-bottom:14px;}
+.field:last-child{margin-bottom:0;}
+label{
+  display:block;
+  font-size:11px;font-weight:500;
+  color:var(--muted);
+  text-transform:uppercase;letter-spacing:.8px;
+  margin-bottom:6px;
+}
+label .req{color:var(--accent);margin-left:2px;}
+input[type="date"],
+input[type="number"],
+input[type="text"],
+input[type="email"],
+select,textarea{
+  width:100%;
+  padding:12px 14px;
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:10px;
+  font-size:15px;
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  appearance:none;-webkit-appearance:none;
+  outline:none;
+  transition:border-color .18s,box-shadow .18s;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(124,106,247,.15);
+}
+input::placeholder,textarea::placeholder{color:var(--hint);}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='rgba(240,239,248,0.4)' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;
+  padding-right:38px;
+}
+select option{background:#1C1C26;color:var(--text);}
+textarea{resize:vertical;min-height:76px;font-size:14px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.hint{font-size:11px;color:var(--hint);margin-top:5px;}
+
+/* ── TOTAL BAR ────────────────────────────────────────────────────────────── */
+.total-bar{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:12px;
+  padding:14px 16px;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:4px;
+}
+.total-bar .lbl{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.total-bar .amt{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--gold);}
+
+/* ── RECEIPT CAPTURE ──────────────────────────────────────────────────────── */
+.capture-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.cap-btn{
+  padding:14px 10px;
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:10px;
+  color:var(--text);
+  font-size:13px;font-weight:500;
+  font-family:'DM Sans',sans-serif;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:border-color .18s,background .18s;
+}
+.cap-btn:hover{border-color:var(--accent);background:rgba(124,106,247,.08);}
+.cap-icon{font-size:17px;}
+input[type="file"]{display:none;}
+
+/* ── PREVIEW ──────────────────────────────────────────────────────────────── */
+.preview-wrap{
+  border-radius:10px;overflow:hidden;
+  border:1px solid var(--border2);
+  display:none;
+}
+.preview-wrap.show{display:block;}
+.preview-wrap img{width:100%;display:block;max-height:220px;object-fit:contain;background:var(--surface);}
+.preview-meta{
+  padding:10px 14px;
+  background:var(--surface);
+  display:flex;justify-content:space-between;align-items:center;
+  border-top:1px solid var(--border);
+}
+.preview-name{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;}
+.preview-remove{background:none;border:none;color:var(--danger);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* ── UPLOAD PROGRESS ──────────────────────────────────────────────────────── */
+.upload-progress{
+  display:none;
+  margin-top:10px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px 14px;
+}
+.upload-progress.show{display:block;}
+.progress-label{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.progress-bar-wrap{background:var(--border2);border-radius:4px;height:4px;overflow:hidden;}
+.progress-bar{height:100%;background:var(--accent);border-radius:4px;width:0%;transition:width .3s;}
+
+/* ── SUBMIT BTN ───────────────────────────────────────────────────────────── */
+.btn-submit{
+  width:100%;padding:16px;
+  background:var(--accent);
+  color:#fff;
+  font-family:'Syne',sans-serif;
+  font-size:15px;font-weight:700;letter-spacing:.5px;
+  border:none;border-radius:12px;
+  cursor:pointer;
+  transition:opacity .15s,transform .1s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.btn-submit:hover{opacity:.9;}
+.btn-submit:active{transform:scale(.98);}
+.btn-submit:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+.btn-clear{
+  width:100%;padding:12px;
+  background:transparent;
+  border:1px solid var(--border2);
+  border-radius:12px;
+  color:var(--muted);
+  font-size:13px;font-weight:500;
+  font-family:'DM Sans',sans-serif;
+  cursor:pointer;margin-top:8px;
+  transition:border-color .15s;
+}
+.btn-clear:hover{border-color:var(--border2);color:var(--text);}
+
+/* ── SPINNER ──────────────────────────────────────────────────────────────── */
+.spinner{
+  width:16px;height:16px;
+  border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  flex-shrink:0;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── SUCCESS SCREEN ───────────────────────────────────────────────────────── */
+#successScreen{display:none;text-align:center;padding:48px 20px;}
+#successScreen.show{display:block;}
+.success-ring{
+  width:72px;height:72px;
+  border:3px solid var(--success);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;margin:0 auto 20px;
+}
+.success-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--success);margin-bottom:8px;}
+.success-sub{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:28px;}
+.btn-another{
+  padding:13px 28px;
+  background:var(--accent);color:#fff;
+  border:none;border-radius:10px;
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;
+}
+
+/* ── TOAST ────────────────────────────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(100px);
+  padding:11px 20px;border-radius:50px;
+  font-size:13px;font-weight:500;color:#fff;
+  font-family:'DM Sans',sans-serif;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  transition:transform .3s ease;z-index:999;
+  white-space:nowrap;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.ok{background:var(--success);}
+.toast.err{background:var(--danger);}
+</style>
 </head>
 <body>
-<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
-<p class="p1"><span class="s1">&lt;html lang="en"&gt;</span></p>
-<p class="p1"><span class="s1">&lt;head&gt;</span></p>
-<p class="p1"><span class="s1">&lt;meta charset="UTF-8"/&gt;</span></p>
-<p class="p1"><span class="s1">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/&gt;</span></p>
-<p class="p1"><span class="s1">&lt;title&gt;Restaurant Expense Tracker&lt;/title&gt;</span></p>
-<p class="p1"><span class="s1">&lt;link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&amp;family=DM+Sans:wght@300;400;500&amp;display=swap" rel="stylesheet"/&gt;</span></p>
-<p class="p1"><span class="s1">&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-authentication-library-browser/3.11.0/msal-browser.min.js"&gt;&lt;/script&gt;</span></p>
-<p class="p1"><span class="s1">&lt;style&gt;</span></p>
-<p class="p1"><span class="s1">/* ── RESET &amp; BASE ─────────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}</span></p>
-<p class="p1"><span class="s1">:root{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--bg: <span class="Apple-converted-space">      </span>#0A0A0F;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--surface:<span class="Apple-converted-space">  </span>#13131A;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--card: <span class="Apple-converted-space">    </span>#1C1C26;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--border: <span class="Apple-converted-space">  </span>rgba(255,255,255,0.08);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--border2:<span class="Apple-converted-space">  </span>rgba(255,255,255,0.14);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--text: <span class="Apple-converted-space">    </span>#F0EFF8;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--muted:<span class="Apple-converted-space">    </span>rgba(240,239,248,0.45);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--hint: <span class="Apple-converted-space">    </span>rgba(240,239,248,0.28);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--accent: <span class="Apple-converted-space">  </span>#7C6AF7;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--accent2:<span class="Apple-converted-space">  </span>#5B4FD4;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--gold: <span class="Apple-converted-space">    </span>#F5C842;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--success:<span class="Apple-converted-space">  </span>#34D399;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--danger: <span class="Apple-converted-space">  </span>#F87171;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>--r:<span class="Apple-converted-space">        </span>16px;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── NOISE TEXTURE OVERLAY ────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">body::before{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>content:'';position:fixed;inset:0;pointer-events:none;z-index:0;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>opacity:.4;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── ACCENT GLOW ──────────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">body::after{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>width:600px;height:400px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:radial-gradient(ellipse,rgba(124,106,247,0.15) 0%,transparent 70%);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>pointer-events:none;z-index:0;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── LAYOUT ───────────────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">.wrap{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:0 16px 60px;}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── HEADER ───────────────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">.header{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>padding:36px 0 28px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>text-align:center;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.header-eyebrow{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-family:'Syne',sans-serif;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-size:10px;letter-spacing:3px;text-transform:uppercase;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>color:var(--accent);margin-bottom:12px;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.header h1{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-family:'Syne',sans-serif;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-size:clamp(22px,5vw,28px);font-weight:800;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>color:var(--text);line-height:1.15;margin-bottom:6px;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.header p{font-size:13px;color:var(--muted);line-height:1.6;}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── SIGN-IN WALL ─────────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">#signInWall{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:var(--card);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:1px solid var(--border2);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-radius:var(--r);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>padding:32px 24px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>text-align:center;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>margin-top:8px;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">#signInWall h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;}</span></p>
-<p class="p1"><span class="s1">#signInWall p{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6;}</span></p>
-<p class="p1"><span class="s1">.ms-btn{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>display:inline-flex;align-items:center;gap:10px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:#fff;color:#1a1a1a;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:none;border-radius:8px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>padding:12px 22px;font-size:14px;font-weight:500;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>cursor:pointer;transition:opacity .15s;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-family:'DM Sans',sans-serif;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.ms-btn:hover{opacity:.92;}</span></p>
-<p class="p1"><span class="s1">.ms-logo{width:18px;height:18px;flex-shrink:0;}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── USER BAR ─────────────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">#userBar{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>display:none;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>align-items:center;justify-content:space-between;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:var(--card);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:1px solid var(--border);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-radius:10px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>padding:10px 14px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>margin-bottom:16px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-size:12px;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">#userBar.show{display:flex;}</span></p>
-<p class="p1"><span class="s1">.user-info{display:flex;align-items:center;gap:8px;}</span></p>
-<p class="p1"><span class="s1">.user-avatar{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>width:28px;height:28px;border-radius:50%;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:var(--accent2);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>display:flex;align-items:center;justify-content:center;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-size:11px;font-weight:700;color:#fff;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-family:'Syne',sans-serif;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>flex-shrink:0;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.user-name{color:var(--text);font-weight:500;}</span></p>
-<p class="p1"><span class="s1">.sign-out-btn{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-size:11px;color:var(--muted);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:none;border:none;cursor:pointer;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>text-decoration:underline;text-underline-offset:2px;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── CARDS ────────────────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">.card{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:var(--card);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:1px solid var(--border);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-radius:var(--r);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>margin-bottom:12px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>overflow:hidden;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.card-head{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>padding:14px 18px 12px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-bottom:1px solid var(--border);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>display:flex;align-items:center;gap:10px;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.card-head-label{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-family:'Syne',sans-serif;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>color:var(--accent);</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.card-head-dot{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.card-body{padding:16px 18px;}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── FIELDS ───────────────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">.field{margin-bottom:14px;}</span></p>
-<p class="p1"><span class="s1">.field:last-child{margin-bottom:0;}</span></p>
-<p class="p1"><span class="s1">label{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>display:block;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-size:11px;font-weight:500;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>color:var(--muted);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>text-transform:uppercase;letter-spacing:.8px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>margin-bottom:6px;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">label .req{color:var(--accent);margin-left:2px;}</span></p>
-<p class="p1"><span class="s1">input[type="date"],</span></p>
-<p class="p1"><span class="s1">input[type="number"],</span></p>
-<p class="p1"><span class="s1">input[type="text"],</span></p>
-<p class="p1"><span class="s1">input[type="email"],</span></p>
-<p class="p1"><span class="s1">select,textarea{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>width:100%;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>padding:12px 14px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:var(--surface);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:1px solid var(--border2);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-radius:10px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-size:15px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>color:var(--text);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-family:'DM Sans',sans-serif;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>appearance:none;-webkit-appearance:none;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>outline:none;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>transition:border-color .18s,box-shadow .18s;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">input:focus,select:focus,textarea:focus{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-color:var(--accent);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>box-shadow:0 0 0 3px rgba(124,106,247,.15);</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">input::placeholder,textarea::placeholder{color:var(--hint);}</span></p>
-<p class="p1"><span class="s1">select{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='rgba(240,239,248,0.4)' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background-repeat:no-repeat;background-position:right 14px center;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>padding-right:38px;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">select option{background:#1C1C26;color:var(--text);}</span></p>
-<p class="p1"><span class="s1">textarea{resize:vertical;min-height:76px;font-size:14px;}</span></p>
-<p class="p1"><span class="s1">.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}</span></p>
-<p class="p1"><span class="s1">.hint{font-size:11px;color:var(--hint);margin-top:5px;}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── TOTAL BAR ────────────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">.total-bar{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:var(--surface);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:1px solid var(--border2);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-radius:12px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>padding:14px 16px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>display:flex;justify-content:space-between;align-items:center;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>margin-top:4px;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.total-bar .lbl{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}</span></p>
-<p class="p1"><span class="s1">.total-bar .amt{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--gold);}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── RECEIPT CAPTURE ──────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">.capture-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}</span></p>
-<p class="p1"><span class="s1">.cap-btn{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>padding:14px 10px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:var(--surface);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:1px solid var(--border2);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-radius:10px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>color:var(--text);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-size:13px;font-weight:500;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-family:'DM Sans',sans-serif;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>cursor:pointer;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>display:flex;align-items:center;justify-content:center;gap:8px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>transition:border-color .18s,background .18s;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.cap-btn:hover{border-color:var(--accent);background:rgba(124,106,247,.08);}</span></p>
-<p class="p1"><span class="s1">.cap-icon{font-size:17px;}</span></p>
-<p class="p1"><span class="s1">input[type="file"]{display:none;}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── PREVIEW ──────────────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">.preview-wrap{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-radius:10px;overflow:hidden;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:1px solid var(--border2);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>display:none;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.preview-wrap.show{display:block;}</span></p>
-<p class="p1"><span class="s1">.preview-wrap img{width:100%;display:block;max-height:220px;object-fit:contain;background:var(--surface);}</span></p>
-<p class="p1"><span class="s1">.preview-meta{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>padding:10px 14px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:var(--surface);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>display:flex;justify-content:space-between;align-items:center;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-top:1px solid var(--border);</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.preview-name{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;}</span></p>
-<p class="p1"><span class="s1">.preview-remove{background:none;border:none;color:var(--danger);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── UPLOAD PROGRESS ──────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">.upload-progress{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>display:none;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>margin-top:10px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:var(--surface);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:1px solid var(--border);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-radius:8px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>padding:10px 14px;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.upload-progress.show{display:block;}</span></p>
-<p class="p1"><span class="s1">.progress-label{font-size:11px;color:var(--muted);margin-bottom:6px;}</span></p>
-<p class="p1"><span class="s1">.progress-bar-wrap{background:var(--border2);border-radius:4px;height:4px;overflow:hidden;}</span></p>
-<p class="p1"><span class="s1">.progress-bar{height:100%;background:var(--accent);border-radius:4px;width:0%;transition:width .3s;}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── SUBMIT BTN ───────────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">.btn-submit{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>width:100%;padding:16px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:var(--accent);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>color:#fff;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-family:'Syne',sans-serif;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-size:15px;font-weight:700;letter-spacing:.5px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:none;border-radius:12px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>cursor:pointer;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>transition:opacity .15s,transform .1s;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>display:flex;align-items:center;justify-content:center;gap:10px;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.btn-submit:hover{opacity:.9;}</span></p>
-<p class="p1"><span class="s1">.btn-submit:active{transform:scale(.98);}</span></p>
-<p class="p1"><span class="s1">.btn-submit:disabled{opacity:.45;cursor:not-allowed;transform:none;}</span></p>
-<p class="p1"><span class="s1">.btn-clear{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>width:100%;padding:12px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:transparent;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:1px solid var(--border2);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-radius:12px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>color:var(--muted);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-size:13px;font-weight:500;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-family:'DM Sans',sans-serif;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>cursor:pointer;margin-top:8px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>transition:border-color .15s;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.btn-clear:hover{border-color:var(--border2);color:var(--text);}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── SPINNER ──────────────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">.spinner{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>width:16px;height:16px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:2px solid rgba(255,255,255,.3);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-top-color:#fff;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-radius:50%;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>animation:spin .7s linear infinite;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>flex-shrink:0;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">@keyframes spin{to{transform:rotate(360deg);}}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── SUCCESS SCREEN ───────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">#successScreen{display:none;text-align:center;padding:48px 20px;}</span></p>
-<p class="p1"><span class="s1">#successScreen.show{display:block;}</span></p>
-<p class="p1"><span class="s1">.success-ring{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>width:72px;height:72px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:3px solid var(--success);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border-radius:50%;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>display:flex;align-items:center;justify-content:center;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-size:30px;margin:0 auto 20px;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.success-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--success);margin-bottom:8px;}</span></p>
-<p class="p1"><span class="s1">.success-sub{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:28px;}</span></p>
-<p class="p1"><span class="s1">.btn-another{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>padding:13px 28px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>background:var(--accent);color:#fff;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>border:none;border-radius:10px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-family:'Syne',sans-serif;font-size:14px;font-weight:700;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>cursor:pointer;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">/* ── TOAST ────────────────────────────────────────────────────────────────── */</span></p>
-<p class="p1"><span class="s1">.toast{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>position:fixed;bottom:24px;left:50%;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>transform:translateX(-50%) translateY(100px);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>padding:11px 20px;border-radius:50px;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-size:13px;font-weight:500;color:#fff;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>font-family:'DM Sans',sans-serif;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>box-shadow:0 8px 32px rgba(0,0,0,.4);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>transition:transform .3s ease;z-index:999;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>white-space:nowrap;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">.toast.show{transform:translateX(-50%) translateY(0);}</span></p>
-<p class="p1"><span class="s1">.toast.ok{background:var(--success);}</span></p>
-<p class="p1"><span class="s1">.toast.err{background:var(--danger);}</span></p>
-<p class="p1"><span class="s1">&lt;/style&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
-<p class="p1"><span class="s1">&lt;body&gt;</span></p>
-<p class="p1"><span class="s1">&lt;div class="wrap"&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- HEADER --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="header"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="header-eyebrow"&gt;Restaurant Management&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;h1&gt;Expense Tracker&lt;/h1&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;p&gt;Saves to Google Sheets · Receipts to OneDrive&lt;/p&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- SIGN-IN WALL (shown until authenticated) --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="signInWall"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;h2&gt;Sign in to continue&lt;/h2&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;p&gt;Use your Microsoft account to upload receipts directly to your OneDrive. Your expense data goes to Google Sheets.&lt;/p&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="ms-btn" onclick="signIn()"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;svg class="ms-logo" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;rect x="1" y="1" width="9" height="9" fill="#F25022"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;rect x="11" y="1" width="9" height="9" fill="#7FBA00"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;rect x="1" y="11" width="9" height="9" fill="#00A4EF"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;rect x="11" y="11" width="9" height="9" fill="#FFB900"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/svg&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>Sign in with Microsoft</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/button&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- USER BAR (shown when signed in) --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="userBar"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="user-info"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="user-avatar" id="userInitials"&gt;?&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;span class="user-name" id="userName"&gt;Loading...&lt;/span&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="sign-out-btn" onclick="signOut()"&gt;Sign out&lt;/button&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- FORM (shown when signed in) --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="formWrap" style="display:none;"&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;!-- Date &amp; Category --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="card-head"&gt;&lt;div class="card-head-dot"&gt;&lt;/div&gt;&lt;div class="card-head-label"&gt;Date &amp; Category&lt;/div&gt;&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="card-body"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;label&gt;Date &lt;span class="req"&gt;*&lt;/span&gt;&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;input type="date" id="date"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="hint"&gt;Defaults to today — tap to change&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;label&gt;Category &lt;span class="req"&gt;*&lt;/span&gt;&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;select id="category" onchange="updateSubcats()"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option value=""&gt;— Select category —&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Food &amp;amp; Beverage&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Labour&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Occupancy&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Utilities&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Marketing&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Supplies &amp;amp; Equipment&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Maintenance&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Technology&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Insurance&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Miscellaneous&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/select&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;label&gt;Sub-Category&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;select id="subcategory"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option value=""&gt;— Select category first —&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/select&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;!-- Vendor --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="card-head"&gt;&lt;div class="card-head-dot"&gt;&lt;/div&gt;&lt;div class="card-head-label"&gt;Vendor &amp; Details&lt;/div&gt;&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="card-body"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;label&gt;Vendor / Supplier &lt;span class="req"&gt;*&lt;/span&gt;&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;input type="text" id="vendor" placeholder="e.g. Fresh Fields Co." autocomplete="off"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;label&gt;Description&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;textarea id="description" placeholder="e.g. Weekly produce order"&gt;&lt;/textarea&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;label&gt;Payment Method &lt;span class="req"&gt;*&lt;/span&gt;&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;select id="payment"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option value=""&gt;— Select —&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Cash&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Debit Card&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Credit Card&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Bank Transfer&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Cheque&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;option&gt;Owner Equity&lt;/option&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/select&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;!-- Amount --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="card-head"&gt;&lt;div class="card-head-dot"&gt;&lt;/div&gt;&lt;div class="card-head-label"&gt;Amount&lt;/div&gt;&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="card-body"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="row2"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="field"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;label&gt;Amount ($) &lt;span class="req"&gt;*&lt;/span&gt;&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;input type="number" id="amount" placeholder="0.00" min="0" step="0.01" oninput="calcTotal()"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="field"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;label&gt;Tax ($)&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;input type="number" id="tax" placeholder="0.00" min="0" step="0.01" oninput="calcTotal()"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="hint"&gt;HST / GST / PST&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="total-bar"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="lbl"&gt;Total (incl. tax)&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="amt" id="totalDisplay"&gt;$0.00&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;!-- Receipt Image --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="card-head"&gt;&lt;div class="card-head-dot"&gt;&lt;/div&gt;&lt;div class="card-head-label"&gt;Receipt Image&lt;/div&gt;&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="card-body"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="capture-btns"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;button type="button" class="cap-btn" onclick="document.getElementById('fileCamera').click()"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;span class="cap-icon"&gt;</span><span class="s2">📷</span><span class="s1">&lt;/span&gt; Take Photo</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/button&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;button type="button" class="cap-btn" onclick="document.getElementById('fileGallery').click()"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;span class="cap-icon"&gt;</span><span class="s2">🖼</span><span class="s1">&lt;/span&gt; Choose File</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/button&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;input type="file" id="fileCamera"<span class="Apple-converted-space">  </span>accept="image/*" capture="environment" onchange="handleFile(this)"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;input type="file" id="fileGallery" accept="image/*,application/pdf" onchange="handleFile(this)"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="preview-wrap" id="previewWrap"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;img id="previewImg" src="" alt="Receipt preview"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="preview-meta"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;span class="preview-name" id="previewName"&gt;&lt;/span&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;button class="preview-remove" onclick="removeImage()"&gt;</span><span class="s3">✕</span><span class="s1"> Remove&lt;/button&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="upload-progress" id="uploadProgress"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="progress-label" id="progressLabel"&gt;Uploading to OneDrive...&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="progress-bar-wrap"&gt;&lt;div class="progress-bar" id="progressBar"&gt;&lt;/div&gt;&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="hint" style="margin-top:10px;"&gt;Uploaded to OneDrive · link stored in Sheet&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;!-- Extra Info --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="card-head"&gt;&lt;div class="card-head-dot"&gt;&lt;/div&gt;&lt;div class="card-head-label"&gt;Additional Info&lt;/div&gt;&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="card-body"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;label&gt;Approved By&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;input type="text" id="approvedBy" placeholder="Manager name"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="row2"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="field"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;label&gt;Receipt #&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;input type="text" id="receiptNo" placeholder="RCP-001"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="field"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;label&gt;Your Email&lt;/label&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;input type="email" id="submittedBy" placeholder="auto-filled"/&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;!-- Submit --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="card-body"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button class="btn-submit" id="submitBtn" onclick="submitForm()"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;span id="submitLabel"&gt;Save Expense&lt;/span&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/button&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button class="btn-clear" onclick="clearForm()"&gt;Clear Form&lt;/button&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;&lt;!-- /formWrap --&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- SUCCESS --&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div id="successScreen"&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="success-ring"&gt;</span><span class="s4">✓</span><span class="s1">&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="success-title"&gt;Expense Logged!&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="success-sub" id="successMsg"&gt;Saved to Google Sheets.&lt;br&gt;Receipt uploaded to OneDrive.&lt;/div&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;button class="btn-another" onclick="resetForm()"&gt;Add Another&lt;/button&gt;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">&lt;/div&gt;&lt;!-- /wrap --&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">&lt;div class="toast" id="toast"&gt;&lt;/div&gt;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">&lt;script&gt;</span></p>
-<p class="p1"><span class="s1">// ── MSAL CONFIG ──────────────────────────────────────────────────────────────</span></p>
-<p class="p1"><span class="s1">const MSAL_CONFIG = {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>auth: {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>clientId:<span class="Apple-converted-space">    </span>"4151be33-2fa1-466d-b734-b4fa2babc4da",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>authority: <span class="Apple-converted-space">  </span>"https://login.microsoftonline.com/consumers",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>redirectUri: "</span><span class="s5">https://riya-2607.github.io/TBM/</span><span class="s1">", // update before deploying</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>},</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>cache: { cacheLocation: "localStorage" }</span></p>
-<p class="p1"><span class="s1">};</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">// ── APPS SCRIPT ENDPOINT ─────────────────────────────────────────────────────</span></p>
-<p class="p1"><span class="s1">const APPS_SCRIPT_URL = "1Pbsczg1idb-6izlFzFJM1Zcd7kkeS_uA7xfJCIciEi4";</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">// ── ONEDRIVE FOLDER ──────────────────────────────────────────────────────────</span></p>
-<p class="p1"><span class="s1">const ONEDRIVE_FOLDER = "Restaurant Receipts";</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">// ── MSAL INSTANCE ────────────────────────────────────────────────────────────</span></p>
-<p class="p1"><span class="s1">// Declare first, initialize in init()</span></p>
-<p class="p1"><span class="s1">let msalInstance = null;</span></p>
-<p class="p1"><span class="s1">let currentAccount = null;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">// ── SUBCATS ──────────────────────────────────────────────────────────────────</span></p>
-<p class="p1"><span class="s1">const SUBCATS = {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>"Food &amp; Beverage":<span class="Apple-converted-space">      </span>["Produce","Meat &amp; Seafood","Dairy","Beverages","Dry Goods","Bakery","Condiments"],</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>"Labour": <span class="Apple-converted-space">              </span>["Kitchen Staff","Front of House","Management","Contract / Casual","Overtime"],</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>"Occupancy":<span class="Apple-converted-space">            </span>["Rent","Property Tax","Common Area Fees"],</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>"Utilities":<span class="Apple-converted-space">            </span>["Electricity","Natural Gas","Water","Internet","Phone"],</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>"Marketing":<span class="Apple-converted-space">            </span>["Social Media","Print / Flyers","Events / Promotions","Photography","PR"],</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>"Supplies &amp; Equipment": ["Smallwares","Uniforms","Cleaning Supplies","Kitchen Equipment","Furniture"],</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>"Maintenance":<span class="Apple-converted-space">          </span>["HVAC","Plumbing","Electrical","Pest Control","General Repairs"],</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>"Technology": <span class="Apple-converted-space">          </span>["POS System","Accounting Software","Website / Online","Security System","Delivery Apps"],</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>"Insurance":<span class="Apple-converted-space">            </span>["General Liability","Workers Comp","Property Insurance","Business Interruption"],</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>"Miscellaneous":<span class="Apple-converted-space">        </span>["Bank Fees","Office Supplies","Training","Legal / Accounting","Other"]</span></p>
-<p class="p1"><span class="s1">};</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">// ── INIT ─────────────────────────────────────────────────────────────────────</span></p>
-<p class="p1"><span class="s1">(async function init() {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>try {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>await msalInstance.initialize();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const accounts = msalInstance.getAllAccounts();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>if (accounts.length &gt; 0) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>currentAccount = accounts[0];</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>showSignedIn(currentAccount);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>} catch(err) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>console.warn("MSAL init:", err.message);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>setToday();</span></p>
-<p class="p1"><span class="s1">})();</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">function setToday() {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const t = new Date();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("date").value =</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">// ── AUTH ──────────────────────────────────────────────────────────────────────</span></p>
-<p class="p1"><span class="s1">async function signIn() {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>try {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>if (!msalInstance) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>await msalInstance.initialize();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const result = await msalInstance.loginPopup({</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>scopes: ["User.Read", "Files.ReadWrite"]</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>});</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>currentAccount = result.account;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>showSignedIn(currentAccount);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>} catch(e) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>showToast("Sign-in failed: " + e.message, "err");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">function signOut() {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>msalInstance.logoutPopup({ account: currentAccount });</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">function showSignedIn(account) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("signInWall").style.display = "none";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("formWrap").style.display <span class="Apple-converted-space">  </span>= "block";</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const name <span class="Apple-converted-space">    </span>= account.name || account.username;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const initials = name.split(" ").map(n =&gt; n[0]).join("").substring(0,2).toUpperCase();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("userInitials").textContent = initials;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("userName").textContent <span class="Apple-converted-space">    </span>= name;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("submittedBy").value<span class="Apple-converted-space">        </span>= account.username;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("userBar").classList.add("show");</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">// ── GET GRAPH TOKEN ──────────────────────────────────────────────────────────</span></p>
-<p class="p1"><span class="s1">async function getGraphToken() {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const request = { scopes: ["Files.ReadWrite"], account: currentAccount };</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>try {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const result = await msalInstance.acquireTokenSilent(request);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>return result.accessToken;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>} catch(e) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const result = await msalInstance.acquireTokenPopup(request);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>return result.accessToken;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">// ── UPLOAD RECEIPT TO ONEDRIVE ────────────────────────────────────────────────</span></p>
-<p class="p1"><span class="s1">async function uploadToOneDrive(file, dateStr, vendor) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const token<span class="Apple-converted-space">    </span>= await getGraphToken();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const safeName = `${dateStr}_${vendor.replace(/[^a-zA-Z0-9]/g,"_").substring(0,25)}_${file.name}`;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const endpoint = `https://graph.microsoft.com/v1.0/me/drive/root:/${ONEDRIVE_FOLDER}/${safeName}:/content`;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>showProgress(10, "Creating OneDrive folder...");</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// Ensure folder exists</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>await fetch(`https://graph.microsoft.com/v1.0/me/drive/root/children`, {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>method: "POST",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>body: JSON.stringify({</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>name: ONEDRIVE_FOLDER,</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>folder: {},</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>"@microsoft.graph.conflictBehavior": "rename"</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>})</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>});</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>showProgress(30, "Uploading receipt...");</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const uploadRes = await fetch(endpoint, {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>method: "PUT",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>headers: { Authorization: `Bearer ${token}`, "Content-Type": file.type || "application/octet-stream" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>body: file</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>});</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if (!uploadRes.ok) throw new Error("Upload failed: " + uploadRes.statusText);</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>showProgress(75, "Getting shareable link...");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const fileData = await uploadRes.json();</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// Create sharing link</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const shareRes = await fetch(</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>`https://graph.microsoft.com/v1.0/me/drive/items/${fileData.id}/createLink`,</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>{</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>method: "POST",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>body: JSON.stringify({ type: "view", scope: "anonymous" })</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>);</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>showProgress(95, "Finalizing...");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const shareData = await shareRes.json();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>return shareData.link?.webUrl || fileData.webUrl;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">// ── PROGRESS HELPERS ──────────────────────────────────────────────────────────</span></p>
-<p class="p1"><span class="s1">function showProgress(pct, label) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("uploadProgress").classList.add("show");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("progressBar").style.width<span class="Apple-converted-space">  </span>= pct + "%";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("progressLabel").textContent = label;</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">function hideProgress() {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("uploadProgress").classList.remove("show");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("progressBar").style.width = "0%";</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">// ── RECEIPT FILE HANDLING ─────────────────────────────────────────────────────</span></p>
-<p class="p1"><span class="s1">let receiptFile = null;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">function handleFile(input) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const file = input.files[0];</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if (!file) return;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>receiptFile = file;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("previewName").textContent = file.name;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if (file.type.startsWith("image/")) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const reader = new FileReader();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>reader.onload = e =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>document.getElementById("previewImg").src = e.target.result;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>document.getElementById("previewWrap").classList.add("show");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>reader.readAsDataURL(file);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>} else {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>document.getElementById("previewImg").src = "";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>document.getElementById("previewWrap").classList.add("show");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">function removeImage() {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>receiptFile = null;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("previewWrap").classList.remove("show");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("previewImg").src = "";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("fileCamera").value<span class="Apple-converted-space">  </span>= "";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("fileGallery").value = "";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>hideProgress();</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">// ── FORM LOGIC ────────────────────────────────────────────────────────────────</span></p>
-<p class="p1"><span class="s1">function updateSubcats() {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const cat = document.getElementById("category").value;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const sel = document.getElementById("subcategory");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>sel.innerHTML = '&lt;option value=""&gt;— Select sub-category —&lt;/option&gt;';</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>(SUBCATS[cat] || []).forEach(s =&gt; {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const o = document.createElement("option");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>o.value = o.text = s;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>sel.appendChild(o);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>});</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">function calcTotal() {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const a = parseFloat(document.getElementById("amount").value) || 0;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const t = parseFloat(document.getElementById("tax").value)<span class="Apple-converted-space">    </span>|| 0;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("totalDisplay").textContent =</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>"$" + (a + t).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">// ── SUBMIT ────────────────────────────────────────────────────────────────────</span></p>
-<p class="p1"><span class="s1">async function submitForm() {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const date <span class="Apple-converted-space">    </span>= document.getElementById("date").value;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const category = document.getElementById("category").value;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const vendor <span class="Apple-converted-space">  </span>= document.getElementById("vendor").value.trim();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const payment<span class="Apple-converted-space">  </span>= document.getElementById("payment").value;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const amount <span class="Apple-converted-space">  </span>= parseFloat(document.getElementById("amount").value) || 0;</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>if (!date || !category || !vendor || !payment || amount &lt;= 0) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>showToast("</span><span class="s6">⚠</span><span class="s1"> Fill in all required fields", "err");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>return;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const btn <span class="Apple-converted-space">  </span>= document.getElementById("submitBtn");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const label = document.getElementById("submitLabel");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>btn.disabled = true;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>label.innerHTML = '&lt;div class="spinner"&gt;&lt;/div&gt; Saving...';</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>try {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// 1. Upload receipt to OneDrive (if selected)</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>let receiptLink = "";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>if (receiptFile) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>receiptLink = await uploadToOneDrive(receiptFile, date, vendor);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>showProgress(100, "Upload complete!");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>await new Promise(r =&gt; setTimeout(r, 600));</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>hideProgress();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>// 2. Send expense data to Apps Script </span><span class="s4">→</span><span class="s1"> Google Sheets</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>label.innerHTML = '&lt;div class="spinner"&gt;&lt;/div&gt; Writing to Sheet...';</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const payload = {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>date<span class="Apple-converted-space">        </span>: date,</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>category<span class="Apple-converted-space">    </span>: category,</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>subcategory : document.getElementById("subcategory").value,</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>vendor<span class="Apple-converted-space">      </span>: vendor,</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>description : document.getElementById("description").value.trim(),</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>payment <span class="Apple-converted-space">    </span>: payment,</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>amount<span class="Apple-converted-space">      </span>: amount.toFixed(2),</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>tax <span class="Apple-converted-space">        </span>: (parseFloat(document.getElementById("tax").value) || 0).toFixed(2),</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>approvedBy<span class="Apple-converted-space">  </span>: document.getElementById("approvedBy").value.trim(),</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>receiptNo <span class="Apple-converted-space">  </span>: document.getElementById("receiptNo").value.trim(),</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>submittedBy : document.getElementById("submittedBy").value.trim(),</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>receiptLink : receiptLink,</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>};</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const res<span class="Apple-converted-space">  </span>= await fetch(APPS_SCRIPT_URL, {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>method: "POST",</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>body: JSON.stringify(payload),</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>});</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const data = await res.json();</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>if (data.success) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const total = (parseFloat(payload.amount) + parseFloat(payload.tax)).toFixed(2);</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>document.getElementById("successMsg").innerHTML =</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>`Total $${total} saved to Google Sheets.${receiptLink ? "&lt;br&gt;Receipt uploaded to OneDrive." : ""}`;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>document.getElementById("formWrap").style.display<span class="Apple-converted-space">    </span>= "none";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>document.getElementById("successScreen").classList.add("show");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>} else {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>throw new Error(data.error || "Unknown error from server");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>} catch(err) {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>showToast("</span><span class="s2">❌</span><span class="s1"> " + err.message, "err");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>} finally {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>btn.disabled = false;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>label.textContent = "Save Expense";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">function clearForm() {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>["vendor","description","approvedBy","receiptNo"].forEach(id =&gt; document.getElementById(id).value = "");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("amount").value <span class="Apple-converted-space">  </span>= "";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("tax").value<span class="Apple-converted-space">      </span>= "";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("category").value = "";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("payment").value<span class="Apple-converted-space">  </span>= "";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("subcategory").innerHTML = '&lt;option value=""&gt;— Select category first —&lt;/option&gt;';</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("totalDisplay").textContent = "$0.00";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>removeImage();</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>setToday();</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">function resetForm() {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("successScreen").classList.remove("show");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>document.getElementById("formWrap").style.display = "block";</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>clearForm();</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p2"><span class="s1"></span><br></p>
-<p class="p1"><span class="s1">function showToast(msg, type = "ok") {</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const t = document.getElementById("toast");</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>t.textContent = msg;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>t.className <span class="Apple-converted-space">  </span>= `toast ${type} show`;</span></p>
-<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>setTimeout(() =&gt; t.className = `toast ${type}`, 3200);</span></p>
-<p class="p1"><span class="s1">}</span></p>
-<p class="p1"><span class="s1">&lt;/script&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
-<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-eyebrow">Restaurant Management</div>
+    <h1>Expense Tracker</h1>
+    <p>Saves to Google Sheets · Receipts to OneDrive</p>
+  </div>
+
+  <!-- SIGN-IN WALL (shown until authenticated) -->
+  <div id="signInWall">
+    <h2>Sign in to continue</h2>
+    <p>Use your Microsoft account to upload receipts directly to your OneDrive. Your expense data goes to Google Sheets.</p>
+    <button class="ms-btn" onclick="signIn()">
+      <svg class="ms-logo" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+        <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+        <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+        <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+      </svg>
+      Sign in with Microsoft
+    </button>
+  </div>
+
+  <!-- USER BAR (shown when signed in) -->
+  <div id="userBar">
+    <div class="user-info">
+      <div class="user-avatar" id="userInitials">?</div>
+      <span class="user-name" id="userName">Loading...</span>
+    </div>
+    <button class="sign-out-btn" onclick="signOut()">Sign out</button>
+  </div>
+
+  <!-- FORM (shown when signed in) -->
+  <div id="formWrap" style="display:none;">
+
+    <!-- Date & Category -->
+    <div class="card">
+      <div class="card-head"><div class="card-head-dot"></div><div class="card-head-label">Date & Category</div></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Date <span class="req">*</span></label>
+          <input type="date" id="date"/>
+          <div class="hint">Defaults to today — tap to change</div>
+        </div>
+        <div class="field">
+          <label>Category <span class="req">*</span></label>
+          <select id="category" onchange="updateSubcats()">
+            <option value="">— Select category —</option>
+            <option>Food &amp; Beverage</option>
+            <option>Labour</option>
+            <option>Occupancy</option>
+            <option>Utilities</option>
+            <option>Marketing</option>
+            <option>Supplies &amp; Equipment</option>
+            <option>Maintenance</option>
+            <option>Technology</option>
+            <option>Insurance</option>
+            <option>Miscellaneous</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Sub-Category</label>
+          <select id="subcategory">
+            <option value="">— Select category first —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vendor -->
+    <div class="card">
+      <div class="card-head"><div class="card-head-dot"></div><div class="card-head-label">Vendor & Details</div></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Vendor / Supplier <span class="req">*</span></label>
+          <input type="text" id="vendor" placeholder="e.g. Fresh Fields Co." autocomplete="off"/>
+        </div>
+        <div class="field">
+          <label>Description</label>
+          <textarea id="description" placeholder="e.g. Weekly produce order"></textarea>
+        </div>
+        <div class="field">
+          <label>Payment Method <span class="req">*</span></label>
+          <select id="payment">
+            <option value="">— Select —</option>
+            <option>Cash</option>
+            <option>Debit Card</option>
+            <option>Credit Card</option>
+            <option>Bank Transfer</option>
+            <option>Cheque</option>
+            <option>Owner Equity</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Amount -->
+    <div class="card">
+      <div class="card-head"><div class="card-head-dot"></div><div class="card-head-label">Amount</div></div>
+      <div class="card-body">
+        <div class="row2">
+          <div class="field">
+            <label>Amount ($) <span class="req">*</span></label>
+            <input type="number" id="amount" placeholder="0.00" min="0" step="0.01" oninput="calcTotal()"/>
+          </div>
+          <div class="field">
+            <label>Tax ($)</label>
+            <input type="number" id="tax" placeholder="0.00" min="0" step="0.01" oninput="calcTotal()"/>
+            <div class="hint">HST / GST / PST</div>
+          </div>
+        </div>
+        <div class="total-bar">
+          <div class="lbl">Total (incl. tax)</div>
+          <div class="amt" id="totalDisplay">$0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receipt Image -->
+    <div class="card">
+      <div class="card-head"><div class="card-head-dot"></div><div class="card-head-label">Receipt Image</div></div>
+      <div class="card-body">
+        <div class="capture-btns">
+          <button type="button" class="cap-btn" onclick="document.getElementById('fileCamera').click()">
+            <span class="cap-icon">📷</span> Take Photo
+          </button>
+          <button type="button" class="cap-btn" onclick="document.getElementById('fileGallery').click()">
+            <span class="cap-icon">🖼</span> Choose File
+          </button>
+        </div>
+        <input type="file" id="fileCamera"  accept="image/*" capture="environment" onchange="handleFile(this)"/>
+        <input type="file" id="fileGallery" accept="image/*,application/pdf" onchange="handleFile(this)"/>
+        <div class="preview-wrap" id="previewWrap">
+          <img id="previewImg" src="" alt="Receipt preview"/>
+          <div class="preview-meta">
+            <span class="preview-name" id="previewName"></span>
+            <button class="preview-remove" onclick="removeImage()">✕ Remove</button>
+          </div>
+        </div>
+        <div class="upload-progress" id="uploadProgress">
+          <div class="progress-label" id="progressLabel">Uploading to OneDrive...</div>
+          <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+        </div>
+        <div class="hint" style="margin-top:10px;">Uploaded to OneDrive · link stored in Sheet</div>
+      </div>
+    </div>
+
+    <!-- Extra Info -->
+    <div class="card">
+      <div class="card-head"><div class="card-head-dot"></div><div class="card-head-label">Additional Info</div></div>
+      <div class="card-body">
+        <div class="field">
+          <label>Approved By</label>
+          <input type="text" id="approvedBy" placeholder="Manager name"/>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Receipt #</label>
+            <input type="text" id="receiptNo" placeholder="RCP-001"/>
+          </div>
+          <div class="field">
+            <label>Your Email</label>
+            <input type="email" id="submittedBy" placeholder="auto-filled"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="card">
+      <div class="card-body">
+        <button class="btn-submit" id="submitBtn" onclick="submitForm()">
+          <span id="submitLabel">Save Expense</span>
+        </button>
+        <button class="btn-clear" onclick="clearForm()">Clear Form</button>
+      </div>
+    </div>
+
+  </div><!-- /formWrap -->
+
+  <!-- SUCCESS -->
+  <div id="successScreen">
+    <div class="success-ring">✓</div>
+    <div class="success-title">Expense Logged!</div>
+    <div class="success-sub" id="successMsg">Saved to Google Sheets.<br>Receipt uploaded to OneDrive.</div>
+    <button class="btn-another" onclick="resetForm()">Add Another</button>
+  </div>
+
+</div><!-- /wrap -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── MSAL CONFIG ──────────────────────────────────────────────────────────────
+const MSAL_CONFIG = {
+  auth: {
+    clientId:    "4151be33-2fa1-466d-b734-b4fa2babc4da",
+    authority:   "https://login.microsoftonline.com/consumers",
+    redirectUri: "https://YOUR-USERNAME.github.io/YOUR-REPO-NAME/", // update before deploying
+  },
+  cache: { cacheLocation: "localStorage" }
+};
+
+// ── APPS SCRIPT ENDPOINT ─────────────────────────────────────────────────────
+const APPS_SCRIPT_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+// ── ONEDRIVE FOLDER ──────────────────────────────────────────────────────────
+const ONEDRIVE_FOLDER = "Restaurant Receipts";
+
+// ── MSAL INSTANCE ────────────────────────────────────────────────────────────
+// Declare first, initialize in init()
+let msalInstance = null;
+let currentAccount = null;
+
+// ── SUBCATS ──────────────────────────────────────────────────────────────────
+const SUBCATS = {
+  "Food & Beverage":      ["Produce","Meat & Seafood","Dairy","Beverages","Dry Goods","Bakery","Condiments"],
+  "Labour":               ["Kitchen Staff","Front of House","Management","Contract / Casual","Overtime"],
+  "Occupancy":            ["Rent","Property Tax","Common Area Fees"],
+  "Utilities":            ["Electricity","Natural Gas","Water","Internet","Phone"],
+  "Marketing":            ["Social Media","Print / Flyers","Events / Promotions","Photography","PR"],
+  "Supplies & Equipment": ["Smallwares","Uniforms","Cleaning Supplies","Kitchen Equipment","Furniture"],
+  "Maintenance":          ["HVAC","Plumbing","Electrical","Pest Control","General Repairs"],
+  "Technology":           ["POS System","Accounting Software","Website / Online","Security System","Delivery Apps"],
+  "Insurance":            ["General Liability","Workers Comp","Property Insurance","Business Interruption"],
+  "Miscellaneous":        ["Bank Fees","Office Supplies","Training","Legal / Accounting","Other"]
+};
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+(async function init() {
+  try {
+    msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);
+    await msalInstance.initialize();
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length > 0) {
+      currentAccount = accounts[0];
+      showSignedIn(currentAccount);
+    }
+  } catch(err) {
+    console.warn("MSAL init:", err.message);
+  }
+  setToday();
+})();
+
+function setToday() {
+  const t = new Date();
+  document.getElementById("date").value =
+    `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+async function signIn() {
+  try {
+    if (!msalInstance) {
+      msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);
+      await msalInstance.initialize();
+    }
+    const result = await msalInstance.loginPopup({
+      scopes: ["User.Read", "Files.ReadWrite"]
+    });
+    currentAccount = result.account;
+    showSignedIn(currentAccount);
+  } catch(e) {
+    showToast("Sign-in failed: " + e.message, "err");
+  }
+}
+function signOut() {
+  msalInstance.logoutPopup({ account: currentAccount });
+}
+
+function showSignedIn(account) {
+  document.getElementById("signInWall").style.display = "none";
+  document.getElementById("formWrap").style.display   = "block";
+
+  const name     = account.name || account.username;
+  const initials = name.split(" ").map(n => n[0]).join("").substring(0,2).toUpperCase();
+  document.getElementById("userInitials").textContent = initials;
+  document.getElementById("userName").textContent     = name;
+  document.getElementById("submittedBy").value        = account.username;
+  document.getElementById("userBar").classList.add("show");
+}
+
+// ── GET GRAPH TOKEN ──────────────────────────────────────────────────────────
+async function getGraphToken() {
+  const request = { scopes: ["Files.ReadWrite"], account: currentAccount };
+  try {
+    const result = await msalInstance.acquireTokenSilent(request);
+    return result.accessToken;
+  } catch(e) {
+    const result = await msalInstance.acquireTokenPopup(request);
+    return result.accessToken;
+  }
+}
+
+// ── UPLOAD RECEIPT TO ONEDRIVE ────────────────────────────────────────────────
+async function uploadToOneDrive(file, dateStr, vendor) {
+  const token    = await getGraphToken();
+  const safeName = `${dateStr}_${vendor.replace(/[^a-zA-Z0-9]/g,"_").substring(0,25)}_${file.name}`;
+  const endpoint = `https://graph.microsoft.com/v1.0/me/drive/root:/${ONEDRIVE_FOLDER}/${safeName}:/content`;
+
+  showProgress(10, "Creating OneDrive folder...");
+
+  // Ensure folder exists
+  await fetch(`https://graph.microsoft.com/v1.0/me/drive/root/children`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: ONEDRIVE_FOLDER,
+      folder: {},
+      "@microsoft.graph.conflictBehavior": "rename"
+    })
+  });
+
+  showProgress(30, "Uploading receipt...");
+
+  const uploadRes = await fetch(endpoint, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": file.type || "application/octet-stream" },
+    body: file
+  });
+
+  if (!uploadRes.ok) throw new Error("Upload failed: " + uploadRes.statusText);
+
+  showProgress(75, "Getting shareable link...");
+  const fileData = await uploadRes.json();
+
+  // Create sharing link
+  const shareRes = await fetch(
+    `https://graph.microsoft.com/v1.0/me/drive/items/${fileData.id}/createLink`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "view", scope: "anonymous" })
+    }
+  );
+
+  showProgress(95, "Finalizing...");
+  const shareData = await shareRes.json();
+  return shareData.link?.webUrl || fileData.webUrl;
+}
+
+// ── PROGRESS HELPERS ──────────────────────────────────────────────────────────
+function showProgress(pct, label) {
+  document.getElementById("uploadProgress").classList.add("show");
+  document.getElementById("progressBar").style.width  = pct + "%";
+  document.getElementById("progressLabel").textContent = label;
+}
+function hideProgress() {
+  document.getElementById("uploadProgress").classList.remove("show");
+  document.getElementById("progressBar").style.width = "0%";
+}
+
+// ── RECEIPT FILE HANDLING ─────────────────────────────────────────────────────
+let receiptFile = null;
+
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  receiptFile = file;
+  document.getElementById("previewName").textContent = file.name;
+  if (file.type.startsWith("image/")) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById("previewImg").src = e.target.result;
+      document.getElementById("previewWrap").classList.add("show");
+    };
+    reader.readAsDataURL(file);
+  } else {
+    document.getElementById("previewImg").src = "";
+    document.getElementById("previewWrap").classList.add("show");
+  }
+}
+
+function removeImage() {
+  receiptFile = null;
+  document.getElementById("previewWrap").classList.remove("show");
+  document.getElementById("previewImg").src = "";
+  document.getElementById("fileCamera").value  = "";
+  document.getElementById("fileGallery").value = "";
+  hideProgress();
+}
+
+// ── FORM LOGIC ────────────────────────────────────────────────────────────────
+function updateSubcats() {
+  const cat = document.getElementById("category").value;
+  const sel = document.getElementById("subcategory");
+  sel.innerHTML = '<option value="">— Select sub-category —</option>';
+  (SUBCATS[cat] || []).forEach(s => {
+    const o = document.createElement("option");
+    o.value = o.text = s;
+    sel.appendChild(o);
+  });
+}
+
+function calcTotal() {
+  const a = parseFloat(document.getElementById("amount").value) || 0;
+  const t = parseFloat(document.getElementById("tax").value)    || 0;
+  document.getElementById("totalDisplay").textContent =
+    "$" + (a + t).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
+async function submitForm() {
+  const date     = document.getElementById("date").value;
+  const category = document.getElementById("category").value;
+  const vendor   = document.getElementById("vendor").value.trim();
+  const payment  = document.getElementById("payment").value;
+  const amount   = parseFloat(document.getElementById("amount").value) || 0;
+
+  if (!date || !category || !vendor || !payment || amount <= 0) {
+    showToast("⚠ Fill in all required fields", "err");
+    return;
+  }
+
+  const btn   = document.getElementById("submitBtn");
+  const label = document.getElementById("submitLabel");
+  btn.disabled = true;
+  label.innerHTML = '<div class="spinner"></div> Saving...';
+
+  try {
+    // 1. Upload receipt to OneDrive (if selected)
+    let receiptLink = "";
+    if (receiptFile) {
+      receiptLink = await uploadToOneDrive(receiptFile, date, vendor);
+      showProgress(100, "Upload complete!");
+      await new Promise(r => setTimeout(r, 600));
+      hideProgress();
+    }
+
+    // 2. Send expense data to Apps Script → Google Sheets
+    label.innerHTML = '<div class="spinner"></div> Writing to Sheet...';
+    const payload = {
+      date        : date,
+      category    : category,
+      subcategory : document.getElementById("subcategory").value,
+      vendor      : vendor,
+      description : document.getElementById("description").value.trim(),
+      payment     : payment,
+      amount      : amount.toFixed(2),
+      tax         : (parseFloat(document.getElementById("tax").value) || 0).toFixed(2),
+      approvedBy  : document.getElementById("approvedBy").value.trim(),
+      receiptNo   : document.getElementById("receiptNo").value.trim(),
+      submittedBy : document.getElementById("submittedBy").value.trim(),
+      receiptLink : receiptLink,
+    };
+
+    const res  = await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      const total = (parseFloat(payload.amount) + parseFloat(payload.tax)).toFixed(2);
+      document.getElementById("successMsg").innerHTML =
+        `Total $${total} saved to Google Sheets.${receiptLink ? "<br>Receipt uploaded to OneDrive." : ""}`;
+      document.getElementById("formWrap").style.display    = "none";
+      document.getElementById("successScreen").classList.add("show");
+    } else {
+      throw new Error(data.error || "Unknown error from server");
+    }
+
+  } catch(err) {
+    showToast("❌ " + err.message, "err");
+  } finally {
+    btn.disabled = false;
+    label.textContent = "Save Expense";
+  }
+}
+
+function clearForm() {
+  ["vendor","description","approvedBy","receiptNo"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("amount").value   = "";
+  document.getElementById("tax").value      = "";
+  document.getElementById("category").value = "";
+  document.getElementById("payment").value  = "";
+  document.getElementById("subcategory").innerHTML = '<option value="">— Select category first —</option>';
+  document.getElementById("totalDisplay").textContent = "$0.00";
+  removeImage();
+  setToday();
+}
+
+function resetForm() {
+  document.getElementById("successScreen").classList.remove("show");
+  document.getElementById("formWrap").style.display = "block";
+  clearForm();
+}
+
+function showToast(msg, type = "ok") {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className   = `toast ${type} show`;
+  setTimeout(() => t.className = `toast ${type}`, 3200);
+}
+</script>
 </body>
 </html>
