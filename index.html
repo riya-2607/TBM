@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>Restaurant Expense Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-authentication-library-browser/3.11.0/msal-browser.min.js"></script>
+<script>window.msalLoadError=false;</script>
+<script src="https://unpkg.com/@azure/msal-browser@3.11.0/lib/msal-browser.min.js" onerror="window.msalLoadError=true"></script>
 <style>
 /* ── RESET & BASE ─────────────────────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -568,6 +569,10 @@ function setToday() {
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 async function signIn() {
+  if (typeof msal === "undefined") {
+    showToast("❌ Login library failed to load. Try disabling browser extensions or ad blockers.", "err");
+    return;
+  }
   try {
     if (!msalInstance) {
       msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);
