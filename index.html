@@ -1,0 +1,831 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2575.7">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  </style>
+</head>
+<body>
+<p class="p1">&lt;!DOCTYPE html&gt;</p>
+<p class="p1">&lt;html lang="en"&gt;</p>
+<p class="p1">&lt;head&gt;</p>
+<p class="p1">&lt;meta charset="UTF-8"/&gt;</p>
+<p class="p1">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/&gt;</p>
+<p class="p1">&lt;title&gt;Restaurant Expense Tracker&lt;/title&gt;</p>
+<p class="p1">&lt;link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&amp;family=DM+Sans:wght@300;400;500&amp;display=swap" rel="stylesheet"/&gt;</p>
+<p class="p1">&lt;script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-authentication-library-browser/3.11.0/msal-browser.min.js"&gt;&lt;/script&gt;</p>
+<p class="p1">&lt;style&gt;</p>
+<p class="p1">/* ── RESET &amp; BASE ─────────────────────────────────────────────────────────── */</p>
+<p class="p1">*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}</p>
+<p class="p1">:root{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--bg: <span class="Apple-converted-space">      </span>#0A0A0F;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--surface:<span class="Apple-converted-space">  </span>#13131A;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--card: <span class="Apple-converted-space">    </span>#1C1C26;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--border: <span class="Apple-converted-space">  </span>rgba(255,255,255,0.08);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--border2:<span class="Apple-converted-space">  </span>rgba(255,255,255,0.14);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--text: <span class="Apple-converted-space">    </span>#F0EFF8;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--muted:<span class="Apple-converted-space">    </span>rgba(240,239,248,0.45);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--hint: <span class="Apple-converted-space">    </span>rgba(240,239,248,0.28);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--accent: <span class="Apple-converted-space">  </span>#7C6AF7;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--accent2:<span class="Apple-converted-space">  </span>#5B4FD4;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--gold: <span class="Apple-converted-space">    </span>#F5C842;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--success:<span class="Apple-converted-space">  </span>#34D399;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--danger: <span class="Apple-converted-space">  </span>#F87171;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>--r:<span class="Apple-converted-space">        </span>16px;</p>
+<p class="p1">}</p>
+<p class="p1">html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── NOISE TEXTURE OVERLAY ────────────────────────────────────────────────── */</p>
+<p class="p1">body::before{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>content:'';position:fixed;inset:0;pointer-events:none;z-index:0;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>opacity:.4;</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── ACCENT GLOW ──────────────────────────────────────────────────────────── */</p>
+<p class="p1">body::after{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>width:600px;height:400px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:radial-gradient(ellipse,rgba(124,106,247,0.15) 0%,transparent 70%);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>pointer-events:none;z-index:0;</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── LAYOUT ───────────────────────────────────────────────────────────────── */</p>
+<p class="p1">.wrap{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:0 16px 60px;}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── HEADER ───────────────────────────────────────────────────────────────── */</p>
+<p class="p1">.header{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>padding:36px 0 28px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>text-align:center;</p>
+<p class="p1">}</p>
+<p class="p1">.header-eyebrow{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-family:'Syne',sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-size:10px;letter-spacing:3px;text-transform:uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>color:var(--accent);margin-bottom:12px;</p>
+<p class="p1">}</p>
+<p class="p1">.header h1{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-family:'Syne',sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-size:clamp(22px,5vw,28px);font-weight:800;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>color:var(--text);line-height:1.15;margin-bottom:6px;</p>
+<p class="p1">}</p>
+<p class="p1">.header p{font-size:13px;color:var(--muted);line-height:1.6;}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── SIGN-IN WALL ─────────────────────────────────────────────────────────── */</p>
+<p class="p1">#signInWall{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:var(--card);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:1px solid var(--border2);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-radius:var(--r);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>padding:32px 24px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>text-align:center;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>margin-top:8px;</p>
+<p class="p1">}</p>
+<p class="p1">#signInWall h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px;}</p>
+<p class="p1">#signInWall p{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6;}</p>
+<p class="p1">.ms-btn{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>display:inline-flex;align-items:center;gap:10px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:#fff;color:#1a1a1a;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:none;border-radius:8px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>padding:12px 22px;font-size:14px;font-weight:500;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>cursor:pointer;transition:opacity .15s;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-family:'DM Sans',sans-serif;</p>
+<p class="p1">}</p>
+<p class="p1">.ms-btn:hover{opacity:.92;}</p>
+<p class="p1">.ms-logo{width:18px;height:18px;flex-shrink:0;}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── USER BAR ─────────────────────────────────────────────────────────────── */</p>
+<p class="p1">#userBar{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>display:none;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>align-items:center;justify-content:space-between;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:var(--card);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:1px solid var(--border);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-radius:10px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>padding:10px 14px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>margin-bottom:16px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-size:12px;</p>
+<p class="p1">}</p>
+<p class="p1">#userBar.show{display:flex;}</p>
+<p class="p1">.user-info{display:flex;align-items:center;gap:8px;}</p>
+<p class="p1">.user-avatar{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>width:28px;height:28px;border-radius:50%;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:var(--accent2);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>display:flex;align-items:center;justify-content:center;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-size:11px;font-weight:700;color:#fff;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-family:'Syne',sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>flex-shrink:0;</p>
+<p class="p1">}</p>
+<p class="p1">.user-name{color:var(--text);font-weight:500;}</p>
+<p class="p1">.sign-out-btn{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-size:11px;color:var(--muted);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:none;border:none;cursor:pointer;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>text-decoration:underline;text-underline-offset:2px;</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── CARDS ────────────────────────────────────────────────────────────────── */</p>
+<p class="p1">.card{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:var(--card);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:1px solid var(--border);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-radius:var(--r);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>margin-bottom:12px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>overflow:hidden;</p>
+<p class="p1">}</p>
+<p class="p1">.card-head{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>padding:14px 18px 12px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-bottom:1px solid var(--border);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>display:flex;align-items:center;gap:10px;</p>
+<p class="p1">}</p>
+<p class="p1">.card-head-label{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-family:'Syne',sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>color:var(--accent);</p>
+<p class="p1">}</p>
+<p class="p1">.card-head-dot{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;</p>
+<p class="p1">}</p>
+<p class="p1">.card-body{padding:16px 18px;}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── FIELDS ───────────────────────────────────────────────────────────────── */</p>
+<p class="p1">.field{margin-bottom:14px;}</p>
+<p class="p1">.field:last-child{margin-bottom:0;}</p>
+<p class="p1">label{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>display:block;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-size:11px;font-weight:500;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>color:var(--muted);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>text-transform:uppercase;letter-spacing:.8px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>margin-bottom:6px;</p>
+<p class="p1">}</p>
+<p class="p1">label .req{color:var(--accent);margin-left:2px;}</p>
+<p class="p1">input[type="date"],</p>
+<p class="p1">input[type="number"],</p>
+<p class="p1">input[type="text"],</p>
+<p class="p1">input[type="email"],</p>
+<p class="p1">select,textarea{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>width:100%;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>padding:12px 14px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:var(--surface);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:1px solid var(--border2);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-radius:10px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-size:15px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>color:var(--text);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-family:'DM Sans',sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>appearance:none;-webkit-appearance:none;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>outline:none;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>transition:border-color .18s,box-shadow .18s;</p>
+<p class="p1">}</p>
+<p class="p1">input:focus,select:focus,textarea:focus{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-color:var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>box-shadow:0 0 0 3px rgba(124,106,247,.15);</p>
+<p class="p1">}</p>
+<p class="p1">input::placeholder,textarea::placeholder{color:var(--hint);}</p>
+<p class="p1">select{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='rgba(240,239,248,0.4)' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background-repeat:no-repeat;background-position:right 14px center;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>padding-right:38px;</p>
+<p class="p1">}</p>
+<p class="p1">select option{background:#1C1C26;color:var(--text);}</p>
+<p class="p1">textarea{resize:vertical;min-height:76px;font-size:14px;}</p>
+<p class="p1">.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}</p>
+<p class="p1">.hint{font-size:11px;color:var(--hint);margin-top:5px;}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── TOTAL BAR ────────────────────────────────────────────────────────────── */</p>
+<p class="p1">.total-bar{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:var(--surface);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:1px solid var(--border2);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-radius:12px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>padding:14px 16px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>display:flex;justify-content:space-between;align-items:center;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>margin-top:4px;</p>
+<p class="p1">}</p>
+<p class="p1">.total-bar .lbl{font-size:10px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}</p>
+<p class="p1">.total-bar .amt{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--gold);}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── RECEIPT CAPTURE ──────────────────────────────────────────────────────── */</p>
+<p class="p1">.capture-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}</p>
+<p class="p1">.cap-btn{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>padding:14px 10px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:var(--surface);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:1px solid var(--border2);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-radius:10px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>color:var(--text);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-size:13px;font-weight:500;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-family:'DM Sans',sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>cursor:pointer;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>display:flex;align-items:center;justify-content:center;gap:8px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>transition:border-color .18s,background .18s;</p>
+<p class="p1">}</p>
+<p class="p1">.cap-btn:hover{border-color:var(--accent);background:rgba(124,106,247,.08);}</p>
+<p class="p1">.cap-icon{font-size:17px;}</p>
+<p class="p1">input[type="file"]{display:none;}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── PREVIEW ──────────────────────────────────────────────────────────────── */</p>
+<p class="p1">.preview-wrap{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-radius:10px;overflow:hidden;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:1px solid var(--border2);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>display:none;</p>
+<p class="p1">}</p>
+<p class="p1">.preview-wrap.show{display:block;}</p>
+<p class="p1">.preview-wrap img{width:100%;display:block;max-height:220px;object-fit:contain;background:var(--surface);}</p>
+<p class="p1">.preview-meta{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>padding:10px 14px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:var(--surface);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>display:flex;justify-content:space-between;align-items:center;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-top:1px solid var(--border);</p>
+<p class="p1">}</p>
+<p class="p1">.preview-name{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;}</p>
+<p class="p1">.preview-remove{background:none;border:none;color:var(--danger);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── UPLOAD PROGRESS ──────────────────────────────────────────────────────── */</p>
+<p class="p1">.upload-progress{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>display:none;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>margin-top:10px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:var(--surface);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:1px solid var(--border);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-radius:8px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>padding:10px 14px;</p>
+<p class="p1">}</p>
+<p class="p1">.upload-progress.show{display:block;}</p>
+<p class="p1">.progress-label{font-size:11px;color:var(--muted);margin-bottom:6px;}</p>
+<p class="p1">.progress-bar-wrap{background:var(--border2);border-radius:4px;height:4px;overflow:hidden;}</p>
+<p class="p1">.progress-bar{height:100%;background:var(--accent);border-radius:4px;width:0%;transition:width .3s;}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── SUBMIT BTN ───────────────────────────────────────────────────────────── */</p>
+<p class="p1">.btn-submit{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>width:100%;padding:16px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:var(--accent);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>color:#fff;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-family:'Syne',sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-size:15px;font-weight:700;letter-spacing:.5px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:none;border-radius:12px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>cursor:pointer;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>transition:opacity .15s,transform .1s;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>display:flex;align-items:center;justify-content:center;gap:10px;</p>
+<p class="p1">}</p>
+<p class="p1">.btn-submit:hover{opacity:.9;}</p>
+<p class="p1">.btn-submit:active{transform:scale(.98);}</p>
+<p class="p1">.btn-submit:disabled{opacity:.45;cursor:not-allowed;transform:none;}</p>
+<p class="p1">.btn-clear{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>width:100%;padding:12px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:transparent;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:1px solid var(--border2);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-radius:12px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>color:var(--muted);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-size:13px;font-weight:500;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-family:'DM Sans',sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>cursor:pointer;margin-top:8px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>transition:border-color .15s;</p>
+<p class="p1">}</p>
+<p class="p1">.btn-clear:hover{border-color:var(--border2);color:var(--text);}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── SPINNER ──────────────────────────────────────────────────────────────── */</p>
+<p class="p1">.spinner{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>width:16px;height:16px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:2px solid rgba(255,255,255,.3);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-top-color:#fff;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-radius:50%;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>animation:spin .7s linear infinite;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>flex-shrink:0;</p>
+<p class="p1">}</p>
+<p class="p1">@keyframes spin{to{transform:rotate(360deg);}}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── SUCCESS SCREEN ───────────────────────────────────────────────────────── */</p>
+<p class="p1">#successScreen{display:none;text-align:center;padding:48px 20px;}</p>
+<p class="p1">#successScreen.show{display:block;}</p>
+<p class="p1">.success-ring{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>width:72px;height:72px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:3px solid var(--success);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border-radius:50%;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>display:flex;align-items:center;justify-content:center;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-size:30px;margin:0 auto 20px;</p>
+<p class="p1">}</p>
+<p class="p1">.success-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--success);margin-bottom:8px;}</p>
+<p class="p1">.success-sub{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:28px;}</p>
+<p class="p1">.btn-another{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>padding:13px 28px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>background:var(--accent);color:#fff;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>border:none;border-radius:10px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-family:'Syne',sans-serif;font-size:14px;font-weight:700;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>cursor:pointer;</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">/* ── TOAST ────────────────────────────────────────────────────────────────── */</p>
+<p class="p1">.toast{</p>
+<p class="p1"><span class="Apple-converted-space">  </span>position:fixed;bottom:24px;left:50%;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>transform:translateX(-50%) translateY(100px);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>padding:11px 20px;border-radius:50px;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-size:13px;font-weight:500;color:#fff;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>font-family:'DM Sans',sans-serif;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>box-shadow:0 8px 32px rgba(0,0,0,.4);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>transition:transform .3s ease;z-index:999;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>white-space:nowrap;</p>
+<p class="p1">}</p>
+<p class="p1">.toast.show{transform:translateX(-50%) translateY(0);}</p>
+<p class="p1">.toast.ok{background:var(--success);}</p>
+<p class="p1">.toast.err{background:var(--danger);}</p>
+<p class="p1">&lt;/style&gt;</p>
+<p class="p1">&lt;/head&gt;</p>
+<p class="p1">&lt;body&gt;</p>
+<p class="p1">&lt;div class="wrap"&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- HEADER --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="header"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="header-eyebrow"&gt;Restaurant Management&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;h1&gt;Expense Tracker&lt;/h1&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Saves to Google Sheets · Receipts to OneDrive&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- SIGN-IN WALL (shown until authenticated) --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div id="signInWall"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;h2&gt;Sign in to continue&lt;/h2&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;p&gt;Use your Microsoft account to upload receipts directly to your OneDrive. Your expense data goes to Google Sheets.&lt;/p&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="ms-btn" onclick="signIn()"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;svg class="ms-logo" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;rect x="1" y="1" width="9" height="9" fill="#F25022"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;rect x="11" y="1" width="9" height="9" fill="#7FBA00"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;rect x="1" y="11" width="9" height="9" fill="#00A4EF"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;rect x="11" y="11" width="9" height="9" fill="#FFB900"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/svg&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>Sign in with Microsoft</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- USER BAR (shown when signed in) --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div id="userBar"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="user-info"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="user-avatar" id="userInitials"&gt;?&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;span class="user-name" id="userName"&gt;Loading...&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="sign-out-btn" onclick="signOut()"&gt;Sign out&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- FORM (shown when signed in) --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div id="formWrap" style="display:none;"&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Date &amp; Category --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-head"&gt;&lt;div class="card-head-dot"&gt;&lt;/div&gt;&lt;div class="card-head-label"&gt;Date &amp; Category&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-body"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;label&gt;Date &lt;span class="req"&gt;*&lt;/span&gt;&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;input type="date" id="date"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="hint"&gt;Defaults to today — tap to change&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;label&gt;Category &lt;span class="req"&gt;*&lt;/span&gt;&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;select id="category" onchange="updateSubcats()"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option value=""&gt;— Select category —&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Food &amp;amp; Beverage&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Labour&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Occupancy&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Utilities&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Marketing&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Supplies &amp;amp; Equipment&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Maintenance&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Technology&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Insurance&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Miscellaneous&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/select&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;label&gt;Sub-Category&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;select id="subcategory"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option value=""&gt;— Select category first —&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/select&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Vendor --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-head"&gt;&lt;div class="card-head-dot"&gt;&lt;/div&gt;&lt;div class="card-head-label"&gt;Vendor &amp; Details&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-body"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;label&gt;Vendor / Supplier &lt;span class="req"&gt;*&lt;/span&gt;&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;input type="text" id="vendor" placeholder="e.g. Fresh Fields Co." autocomplete="off"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;label&gt;Description&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;textarea id="description" placeholder="e.g. Weekly produce order"&gt;&lt;/textarea&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;label&gt;Payment Method &lt;span class="req"&gt;*&lt;/span&gt;&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;select id="payment"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option value=""&gt;— Select —&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Cash&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Debit Card&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Credit Card&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Bank Transfer&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Cheque&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;option&gt;Owner Equity&lt;/option&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/select&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Amount --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-head"&gt;&lt;div class="card-head-dot"&gt;&lt;/div&gt;&lt;div class="card-head-label"&gt;Amount&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-body"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="row2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="field"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;label&gt;Amount ($) &lt;span class="req"&gt;*&lt;/span&gt;&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;input type="number" id="amount" placeholder="0.00" min="0" step="0.01" oninput="calcTotal()"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="field"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;label&gt;Tax ($)&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;input type="number" id="tax" placeholder="0.00" min="0" step="0.01" oninput="calcTotal()"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="hint"&gt;HST / GST / PST&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="total-bar"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="lbl"&gt;Total (incl. tax)&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="amt" id="totalDisplay"&gt;$0.00&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Receipt Image --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-head"&gt;&lt;div class="card-head-dot"&gt;&lt;/div&gt;&lt;div class="card-head-label"&gt;Receipt Image&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-body"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="capture-btns"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;button type="button" class="cap-btn" onclick="document.getElementById('fileCamera').click()"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;span class="cap-icon"&gt;📷&lt;/span&gt; Take Photo</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;button type="button" class="cap-btn" onclick="document.getElementById('fileGallery').click()"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;span class="cap-icon"&gt;🖼&lt;/span&gt; Choose File</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;input type="file" id="fileCamera"<span class="Apple-converted-space">  </span>accept="image/*" capture="environment" onchange="handleFile(this)"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;input type="file" id="fileGallery" accept="image/*,application/pdf" onchange="handleFile(this)"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="preview-wrap" id="previewWrap"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;img id="previewImg" src="" alt="Receipt preview"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="preview-meta"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;span class="preview-name" id="previewName"&gt;&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="preview-remove" onclick="removeImage()"&gt;✕ Remove&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="upload-progress" id="uploadProgress"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="progress-label" id="progressLabel"&gt;Uploading to OneDrive...&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="progress-bar-wrap"&gt;&lt;div class="progress-bar" id="progressBar"&gt;&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="hint" style="margin-top:10px;"&gt;Uploaded to OneDrive · link stored in Sheet&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Extra Info --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-head"&gt;&lt;div class="card-head-dot"&gt;&lt;/div&gt;&lt;div class="card-head-label"&gt;Additional Info&lt;/div&gt;&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-body"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="field"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;label&gt;Approved By&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;input type="text" id="approvedBy" placeholder="Manager name"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="row2"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="field"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;label&gt;Receipt #&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;input type="text" id="receiptNo" placeholder="RCP-001"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;div class="field"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;label&gt;Your Email&lt;/label&gt;</p>
+<p class="p1"><span class="Apple-converted-space">            </span>&lt;input type="email" id="submittedBy" placeholder="auto-filled"/&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;!-- Submit --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;div class="card-body"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="btn-submit" id="submitBtn" onclick="submitForm()"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">          </span>&lt;span id="submitLabel"&gt;Save Expense&lt;/span&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="btn-clear" onclick="clearForm()"&gt;Clear Form&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;&lt;!-- /formWrap --&gt;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;!-- SUCCESS --&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;div id="successScreen"&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="success-ring"&gt;✓&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="success-title"&gt;Expense Logged!&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="success-sub" id="successMsg"&gt;Saved to Google Sheets.&lt;br&gt;Receipt uploaded to OneDrive.&lt;/div&gt;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="btn-another" onclick="resetForm()"&gt;Add Another&lt;/button&gt;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;/div&gt;&lt;!-- /wrap --&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;div class="toast" id="toast"&gt;&lt;/div&gt;</p>
+<p class="p2"><br></p>
+<p class="p1">&lt;script&gt;</p>
+<p class="p1">// ── MSAL CONFIG ──────────────────────────────────────────────────────────────</p>
+<p class="p1">const MSAL_CONFIG = {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>auth: {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>clientId:<span class="Apple-converted-space">    </span>"4151be33-2fa1-466d-b734-b4fa2babc4da",</p>
+<p class="p1"><span class="Apple-converted-space">    </span>authority: <span class="Apple-converted-space">  </span>"https://login.microsoftonline.com/consumers",</p>
+<p class="p1"><span class="Apple-converted-space">    </span>redirectUri: "https://YOUR-USERNAME.github.io/YOUR-REPO-NAME/", // update before deploying</p>
+<p class="p1"><span class="Apple-converted-space">  </span>},</p>
+<p class="p1"><span class="Apple-converted-space">  </span>cache: { cacheLocation: "localStorage" }</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">// ── APPS SCRIPT ENDPOINT ─────────────────────────────────────────────────────</p>
+<p class="p1">const APPS_SCRIPT_URL = "1Pbsczg1idb-6izlFzFJM1Zcd7kkeS_uA7xfJCIciEi4";</p>
+<p class="p2"><br></p>
+<p class="p1">// ── ONEDRIVE FOLDER ──────────────────────────────────────────────────────────</p>
+<p class="p1">const ONEDRIVE_FOLDER = "Restaurant Receipts";</p>
+<p class="p2"><br></p>
+<p class="p1">// ── MSAL INSTANCE ────────────────────────────────────────────────────────────</p>
+<p class="p1">// Declare first, initialize in init()</p>
+<p class="p1">let msalInstance = null;</p>
+<p class="p1">let currentAccount = null;</p>
+<p class="p2"><br></p>
+<p class="p1">// ── SUBCATS ──────────────────────────────────────────────────────────────────</p>
+<p class="p1">const SUBCATS = {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>"Food &amp; Beverage":<span class="Apple-converted-space">      </span>["Produce","Meat &amp; Seafood","Dairy","Beverages","Dry Goods","Bakery","Condiments"],</p>
+<p class="p1"><span class="Apple-converted-space">  </span>"Labour": <span class="Apple-converted-space">              </span>["Kitchen Staff","Front of House","Management","Contract / Casual","Overtime"],</p>
+<p class="p1"><span class="Apple-converted-space">  </span>"Occupancy":<span class="Apple-converted-space">            </span>["Rent","Property Tax","Common Area Fees"],</p>
+<p class="p1"><span class="Apple-converted-space">  </span>"Utilities":<span class="Apple-converted-space">            </span>["Electricity","Natural Gas","Water","Internet","Phone"],</p>
+<p class="p1"><span class="Apple-converted-space">  </span>"Marketing":<span class="Apple-converted-space">            </span>["Social Media","Print / Flyers","Events / Promotions","Photography","PR"],</p>
+<p class="p1"><span class="Apple-converted-space">  </span>"Supplies &amp; Equipment": ["Smallwares","Uniforms","Cleaning Supplies","Kitchen Equipment","Furniture"],</p>
+<p class="p1"><span class="Apple-converted-space">  </span>"Maintenance":<span class="Apple-converted-space">          </span>["HVAC","Plumbing","Electrical","Pest Control","General Repairs"],</p>
+<p class="p1"><span class="Apple-converted-space">  </span>"Technology": <span class="Apple-converted-space">          </span>["POS System","Accounting Software","Website / Online","Security System","Delivery Apps"],</p>
+<p class="p1"><span class="Apple-converted-space">  </span>"Insurance":<span class="Apple-converted-space">            </span>["General Liability","Workers Comp","Property Insurance","Business Interruption"],</p>
+<p class="p1"><span class="Apple-converted-space">  </span>"Miscellaneous":<span class="Apple-converted-space">        </span>["Bank Fees","Office Supplies","Training","Legal / Accounting","Other"]</p>
+<p class="p1">};</p>
+<p class="p2"><br></p>
+<p class="p1">// ── INIT ─────────────────────────────────────────────────────────────────────</p>
+<p class="p1">(async function init() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>await msalInstance.initialize();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const accounts = msalInstance.getAllAccounts();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (accounts.length &gt; 0) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>currentAccount = accounts[0];</p>
+<p class="p1"><span class="Apple-converted-space">      </span>showSignedIn(currentAccount);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} catch(err) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>console.warn("MSAL init:", err.message);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>setToday();</p>
+<p class="p1">})();</p>
+<p class="p2"><br></p>
+<p class="p1">function setToday() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const t = new Date();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("date").value =</p>
+<p class="p1"><span class="Apple-converted-space">    </span>`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">// ── AUTH ──────────────────────────────────────────────────────────────────────</p>
+<p class="p1">async function signIn() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (!msalInstance) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>await msalInstance.initialize();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const result = await msalInstance.loginPopup({</p>
+<p class="p1"><span class="Apple-converted-space">      </span>scopes: ["User.Read", "Files.ReadWrite"]</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>currentAccount = result.account;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>showSignedIn(currentAccount);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} catch(e) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>showToast("Sign-in failed: " + e.message, "err");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">}</p>
+<p class="p1">function signOut() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>msalInstance.logoutPopup({ account: currentAccount });</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function showSignedIn(account) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("signInWall").style.display = "none";</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("formWrap").style.display <span class="Apple-converted-space">  </span>= "block";</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const name <span class="Apple-converted-space">    </span>= account.name || account.username;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const initials = name.split(" ").map(n =&gt; n[0]).join("").substring(0,2).toUpperCase();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("userInitials").textContent = initials;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("userName").textContent <span class="Apple-converted-space">    </span>= name;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("submittedBy").value<span class="Apple-converted-space">        </span>= account.username;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("userBar").classList.add("show");</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">// ── GET GRAPH TOKEN ──────────────────────────────────────────────────────────</p>
+<p class="p1">async function getGraphToken() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const request = { scopes: ["Files.ReadWrite"], account: currentAccount };</p>
+<p class="p1"><span class="Apple-converted-space">  </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const result = await msalInstance.acquireTokenSilent(request);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>return result.accessToken;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} catch(e) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const result = await msalInstance.acquireTokenPopup(request);</p>
+<p class="p1"><span class="Apple-converted-space">    </span>return result.accessToken;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">// ── UPLOAD RECEIPT TO ONEDRIVE ────────────────────────────────────────────────</p>
+<p class="p1">async function uploadToOneDrive(file, dateStr, vendor) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const token<span class="Apple-converted-space">    </span>= await getGraphToken();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const safeName = `${dateStr}_${vendor.replace(/[^a-zA-Z0-9]/g,"_").substring(0,25)}_${file.name}`;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const endpoint = `https://graph.microsoft.com/v1.0/me/drive/root:/${ONEDRIVE_FOLDER}/${safeName}:/content`;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>showProgress(10, "Creating OneDrive folder...");</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// Ensure folder exists</p>
+<p class="p1"><span class="Apple-converted-space">  </span>await fetch(`https://graph.microsoft.com/v1.0/me/drive/root/children`, {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>method: "POST",</p>
+<p class="p1"><span class="Apple-converted-space">    </span>headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>body: JSON.stringify({</p>
+<p class="p1"><span class="Apple-converted-space">      </span>name: ONEDRIVE_FOLDER,</p>
+<p class="p1"><span class="Apple-converted-space">      </span>folder: {},</p>
+<p class="p1"><span class="Apple-converted-space">      </span>"@microsoft.graph.conflictBehavior": "rename"</p>
+<p class="p1"><span class="Apple-converted-space">    </span>})</p>
+<p class="p1"><span class="Apple-converted-space">  </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>showProgress(30, "Uploading receipt...");</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const uploadRes = await fetch(endpoint, {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>method: "PUT",</p>
+<p class="p1"><span class="Apple-converted-space">    </span>headers: { Authorization: `Bearer ${token}`, "Content-Type": file.type || "application/octet-stream" },</p>
+<p class="p1"><span class="Apple-converted-space">    </span>body: file</p>
+<p class="p1"><span class="Apple-converted-space">  </span>});</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (!uploadRes.ok) throw new Error("Upload failed: " + uploadRes.statusText);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>showProgress(75, "Getting shareable link...");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const fileData = await uploadRes.json();</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>// Create sharing link</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const shareRes = await fetch(</p>
+<p class="p1"><span class="Apple-converted-space">    </span>`https://graph.microsoft.com/v1.0/me/drive/items/${fileData.id}/createLink`,</p>
+<p class="p1"><span class="Apple-converted-space">    </span>{</p>
+<p class="p1"><span class="Apple-converted-space">      </span>method: "POST",</p>
+<p class="p1"><span class="Apple-converted-space">      </span>headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },</p>
+<p class="p1"><span class="Apple-converted-space">      </span>body: JSON.stringify({ type: "view", scope: "anonymous" })</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p1"><span class="Apple-converted-space">  </span>);</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>showProgress(95, "Finalizing...");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const shareData = await shareRes.json();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>return shareData.link?.webUrl || fileData.webUrl;</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">// ── PROGRESS HELPERS ──────────────────────────────────────────────────────────</p>
+<p class="p1">function showProgress(pct, label) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("uploadProgress").classList.add("show");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("progressBar").style.width<span class="Apple-converted-space">  </span>= pct + "%";</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("progressLabel").textContent = label;</p>
+<p class="p1">}</p>
+<p class="p1">function hideProgress() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("uploadProgress").classList.remove("show");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("progressBar").style.width = "0%";</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">// ── RECEIPT FILE HANDLING ─────────────────────────────────────────────────────</p>
+<p class="p1">let receiptFile = null;</p>
+<p class="p2"><br></p>
+<p class="p1">function handleFile(input) {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const file = input.files[0];</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (!file) return;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>receiptFile = file;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("previewName").textContent = file.name;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (file.type.startsWith("image/")) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const reader = new FileReader();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>reader.onload = e =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById("previewImg").src = e.target.result;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById("previewWrap").classList.add("show");</p>
+<p class="p1"><span class="Apple-converted-space">    </span>};</p>
+<p class="p1"><span class="Apple-converted-space">    </span>reader.readAsDataURL(file);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById("previewImg").src = "";</p>
+<p class="p1"><span class="Apple-converted-space">    </span>document.getElementById("previewWrap").classList.add("show");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function removeImage() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>receiptFile = null;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("previewWrap").classList.remove("show");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("previewImg").src = "";</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("fileCamera").value<span class="Apple-converted-space">  </span>= "";</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("fileGallery").value = "";</p>
+<p class="p1"><span class="Apple-converted-space">  </span>hideProgress();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">// ── FORM LOGIC ────────────────────────────────────────────────────────────────</p>
+<p class="p1">function updateSubcats() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const cat = document.getElementById("category").value;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const sel = document.getElementById("subcategory");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>sel.innerHTML = '&lt;option value=""&gt;— Select sub-category —&lt;/option&gt;';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>(SUBCATS[cat] || []).forEach(s =&gt; {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const o = document.createElement("option");</p>
+<p class="p1"><span class="Apple-converted-space">    </span>o.value = o.text = s;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>sel.appendChild(o);</p>
+<p class="p1"><span class="Apple-converted-space">  </span>});</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function calcTotal() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const a = parseFloat(document.getElementById("amount").value) || 0;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const t = parseFloat(document.getElementById("tax").value)<span class="Apple-converted-space">    </span>|| 0;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("totalDisplay").textContent =</p>
+<p class="p1"><span class="Apple-converted-space">    </span>"$" + (a + t).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">// ── SUBMIT ────────────────────────────────────────────────────────────────────</p>
+<p class="p1">async function submitForm() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const date <span class="Apple-converted-space">    </span>= document.getElementById("date").value;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const category = document.getElementById("category").value;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const vendor <span class="Apple-converted-space">  </span>= document.getElementById("vendor").value.trim();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const payment<span class="Apple-converted-space">  </span>= document.getElementById("payment").value;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const amount <span class="Apple-converted-space">  </span>= parseFloat(document.getElementById("amount").value) || 0;</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>if (!date || !category || !vendor || !payment || amount &lt;= 0) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>showToast("⚠ Fill in all required fields", "err");</p>
+<p class="p1"><span class="Apple-converted-space">    </span>return;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>const btn <span class="Apple-converted-space">  </span>= document.getElementById("submitBtn");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const label = document.getElementById("submitLabel");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>btn.disabled = true;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>label.innerHTML = '&lt;div class="spinner"&gt;&lt;/div&gt; Saving...';</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>try {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>// 1. Upload receipt to OneDrive (if selected)</p>
+<p class="p1"><span class="Apple-converted-space">    </span>let receiptLink = "";</p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (receiptFile) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>receiptLink = await uploadToOneDrive(receiptFile, date, vendor);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>showProgress(100, "Upload complete!");</p>
+<p class="p1"><span class="Apple-converted-space">      </span>await new Promise(r =&gt; setTimeout(r, 600));</p>
+<p class="p1"><span class="Apple-converted-space">      </span>hideProgress();</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>// 2. Send expense data to Apps Script → Google Sheets</p>
+<p class="p1"><span class="Apple-converted-space">    </span>label.innerHTML = '&lt;div class="spinner"&gt;&lt;/div&gt; Writing to Sheet...';</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const payload = {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>date<span class="Apple-converted-space">        </span>: date,</p>
+<p class="p1"><span class="Apple-converted-space">      </span>category<span class="Apple-converted-space">    </span>: category,</p>
+<p class="p1"><span class="Apple-converted-space">      </span>subcategory : document.getElementById("subcategory").value,</p>
+<p class="p1"><span class="Apple-converted-space">      </span>vendor<span class="Apple-converted-space">      </span>: vendor,</p>
+<p class="p1"><span class="Apple-converted-space">      </span>description : document.getElementById("description").value.trim(),</p>
+<p class="p1"><span class="Apple-converted-space">      </span>payment <span class="Apple-converted-space">    </span>: payment,</p>
+<p class="p1"><span class="Apple-converted-space">      </span>amount<span class="Apple-converted-space">      </span>: amount.toFixed(2),</p>
+<p class="p1"><span class="Apple-converted-space">      </span>tax <span class="Apple-converted-space">        </span>: (parseFloat(document.getElementById("tax").value) || 0).toFixed(2),</p>
+<p class="p1"><span class="Apple-converted-space">      </span>approvedBy<span class="Apple-converted-space">  </span>: document.getElementById("approvedBy").value.trim(),</p>
+<p class="p1"><span class="Apple-converted-space">      </span>receiptNo <span class="Apple-converted-space">  </span>: document.getElementById("receiptNo").value.trim(),</p>
+<p class="p1"><span class="Apple-converted-space">      </span>submittedBy : document.getElementById("submittedBy").value.trim(),</p>
+<p class="p1"><span class="Apple-converted-space">      </span>receiptLink : receiptLink,</p>
+<p class="p1"><span class="Apple-converted-space">    </span>};</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>const res<span class="Apple-converted-space">  </span>= await fetch(APPS_SCRIPT_URL, {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>method: "POST",</p>
+<p class="p1"><span class="Apple-converted-space">      </span>body: JSON.stringify(payload),</p>
+<p class="p1"><span class="Apple-converted-space">    </span>});</p>
+<p class="p1"><span class="Apple-converted-space">    </span>const data = await res.json();</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">    </span>if (data.success) {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>const total = (parseFloat(payload.amount) + parseFloat(payload.tax)).toFixed(2);</p>
+<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById("successMsg").innerHTML =</p>
+<p class="p1"><span class="Apple-converted-space">        </span>`Total $${total} saved to Google Sheets.${receiptLink ? "&lt;br&gt;Receipt uploaded to OneDrive." : ""}`;</p>
+<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById("formWrap").style.display<span class="Apple-converted-space">    </span>= "none";</p>
+<p class="p1"><span class="Apple-converted-space">      </span>document.getElementById("successScreen").classList.add("show");</p>
+<p class="p1"><span class="Apple-converted-space">    </span>} else {</p>
+<p class="p1"><span class="Apple-converted-space">      </span>throw new Error(data.error || "Unknown error from server");</p>
+<p class="p1"><span class="Apple-converted-space">    </span>}</p>
+<p class="p2"><br></p>
+<p class="p1"><span class="Apple-converted-space">  </span>} catch(err) {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>showToast("❌ " + err.message, "err");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>} finally {</p>
+<p class="p1"><span class="Apple-converted-space">    </span>btn.disabled = false;</p>
+<p class="p1"><span class="Apple-converted-space">    </span>label.textContent = "Save Expense";</p>
+<p class="p1"><span class="Apple-converted-space">  </span>}</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function clearForm() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>["vendor","description","approvedBy","receiptNo"].forEach(id =&gt; document.getElementById(id).value = "");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("amount").value <span class="Apple-converted-space">  </span>= "";</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("tax").value<span class="Apple-converted-space">      </span>= "";</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("category").value = "";</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("payment").value<span class="Apple-converted-space">  </span>= "";</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("subcategory").innerHTML = '&lt;option value=""&gt;— Select category first —&lt;/option&gt;';</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("totalDisplay").textContent = "$0.00";</p>
+<p class="p1"><span class="Apple-converted-space">  </span>removeImage();</p>
+<p class="p1"><span class="Apple-converted-space">  </span>setToday();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function resetForm() {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("successScreen").classList.remove("show");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>document.getElementById("formWrap").style.display = "block";</p>
+<p class="p1"><span class="Apple-converted-space">  </span>clearForm();</p>
+<p class="p1">}</p>
+<p class="p2"><br></p>
+<p class="p1">function showToast(msg, type = "ok") {</p>
+<p class="p1"><span class="Apple-converted-space">  </span>const t = document.getElementById("toast");</p>
+<p class="p1"><span class="Apple-converted-space">  </span>t.textContent = msg;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>t.className <span class="Apple-converted-space">  </span>= `toast ${type} show`;</p>
+<p class="p1"><span class="Apple-converted-space">  </span>setTimeout(() =&gt; t.className = `toast ${type}`, 3200);</p>
+<p class="p1">}</p>
+<p class="p1">&lt;/script&gt;</p>
+<p class="p1">&lt;/body&gt;</p>
+<p class="p1">&lt;/html&gt;</p>
+</body>
+</html>
